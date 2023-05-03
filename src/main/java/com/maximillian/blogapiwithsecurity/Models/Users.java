@@ -26,7 +26,7 @@ public class Users implements UserDetails {
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
     generator = "sequence_generator")
     private Long id;
-    private String userName;
+    private String username;
     @Enumerated(EnumType.STRING)
     private Roles roles;
     @Column(nullable = false, unique = true)

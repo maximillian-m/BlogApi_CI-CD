@@ -22,14 +22,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    @RequestMapping(value = "/registerAdmin", method = RequestMethod.POST)
+  @PostMapping("/registerAdmin")
     public AuthResponse createAdmin(@Valid @RequestBody UsersDto user) {
         return userService.createAdmin(user);
     }
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public AuthResponse createUser(@Valid  @RequestBody UsersDto user) {
-     return userService.createUser(user);
+  @PostMapping("/register")
+    public ResponseEntity<AuthResponse> createUser(@Valid  @RequestBody UsersDto user) throws CustomException {
+     return ResponseEntity.ok(userService.createUser(user));
     }
 
     //endpoint that takes care of the user login methods

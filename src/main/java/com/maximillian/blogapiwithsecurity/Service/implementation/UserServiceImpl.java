@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +39,16 @@ public class UserServiceImpl implements UserService {
 
     //Method to create a regular
     @Override
-    public AuthResponse createUser(UsersDto userDto) {
+    public AuthResponse createUser(UsersDto userDto) throws CustomException {
         Users user = dtoToEntity(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setRoles(Roles.REGULAR);
-      Users savedUser = userRepository.save(user);
+        Users savedUser;
+        try {
+             savedUser = userRepository.save(user);
+        }catch (Exception e){
+            throw new CustomException("User already exists change email");
+        }
       String jwtToken = jwtService.generateToken(user);
       saveToken(savedUser, jwtToken);
       return AuthResponse.builder()
@@ -63,15 +70,24 @@ public class UserServiceImpl implements UserService {
 //Method to take care of Login
 @Override
     public AuthResponse loginUsers(UsersDto userDto)throws CustomException{
-        manager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        userDto.getEmail(),
-                        userDto.getPassword()
-                )
-        );
+//        manager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        userDto.getEmail(),
+//                        userDto.getPassword()
+//                )
+//        );
+//        Users user = userRepository.findByUsername(userDto.getEmail())
+//                .orElseThrow();
+        log.info("I saw this code before " + "========================>>>>>");
+        UserDetails users = loadUserByUsername(userDto.getEmail());
+
+        log.info("user from userDto====>>>>>" + userDto.getEmail());
+
        Users user  = userRepository.findByEmail(userDto.getEmail())
-               .orElseThrow();
-       String jwtToken = jwtService.generateToken(user);
+               .orElseThrow(()-> new CustomException("user not found"));
+
+    log.info("This is the User u wanted " + user);
+       String jwtToken = jwtService.generateToken(users);
        revokeAllTokens(user);
        saveToken(user, jwtToken);
         return AuthResponse.builder()
@@ -108,5 +124,11 @@ public class UserServiceImpl implements UserService {
     public UsersDto findUserById(Long id) throws CustomException {
         Users users = userRepository.findById(id).orElseThrow(() ->(new CustomException("User not found")));
         return mappedToDto(users);
+    }
+
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException, CustomException {
+        UserDetails userDetails = userRepository.findByEmail(email)
+                .orElseThrow(()-> new CustomException("User not found"));
+        return userDetails;
     }
 }
