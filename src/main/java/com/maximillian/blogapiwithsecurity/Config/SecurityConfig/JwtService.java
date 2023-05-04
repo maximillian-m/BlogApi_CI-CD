@@ -7,13 +7,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -59,7 +58,21 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userdetails) {
-        return buildToken(new HashMap<>(), userdetails, jwtExpiration);
+        //collections to get the simple authorities
+        Collection<? extends SimpleGrantedAuthority> authorities =
+                (Collection<? extends SimpleGrantedAuthority>) userdetails.getAuthorities();
+
+        //Initialize an array list to hold the authorities
+        List<String> authorityName = new ArrayList<>();
+
+        //Loop through and add the simple authorities to the list
+        for(SimpleGrantedAuthority authority : authorities){
+            authorityName.add(authority.getAuthority());
+        }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("authorities", authorityName);
+        return buildToken(claims, userdetails, jwtExpiration);
     }
 
     public String buildToken(
@@ -67,6 +80,7 @@ public class JwtService {
            UserDetails userDetails,
            long expiration
     ){
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
