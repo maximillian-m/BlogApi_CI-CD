@@ -40,10 +40,12 @@ public class CommentServiceImpl implements CommentsService {
 
     //Creating comments
     @Override
-    public CommentDto createComment(CommentDto commentDto, Long userId, Long id) {
-        Users users = userRepository.findById(userId).get();
+    public CommentDto createComment(CommentDto commentDto, String username, Long id) {
+        Users users = userRepository.findByEmail(username)
+                .orElseThrow();
         Comments comments = Dtotocomments(commentDto);
-        Posts post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("post not found"));
+        Posts post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("post not found"));
         comments.setUser(users);
         comments.setPost(post);
         comments.setCreatedAt(LocalDateTime.now());
@@ -55,9 +57,13 @@ public class CommentServiceImpl implements CommentsService {
 
     //The delete comment method
     @Override
-    public void deleteComment(Long id, Long userId) throws CustomException {
-        Comments comments = commentsRepository.findById(id).orElseThrow(() -> new CustomException("Comment not found"));
-        if(!comments.getUser().getId().equals(userId)){
+    public void deleteComment(Long id, String users) throws CustomException {
+        Comments comments = commentsRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Comment not found"));
+
+        Users loadedUser = userRepository.findByEmail(users)
+                .orElseThrow();
+        if(!comments.getUser().getId().equals(loadedUser.getId())){
             throw new CustomException("you are not authorized to delete a comment that is not yours");
         }
         commentsRepository.deleteById(id);
@@ -66,9 +72,11 @@ public class CommentServiceImpl implements CommentsService {
 
     //The update comment session
     @Override
-    public CommentDto UpdateComment(CommentDto commentDto, Long userId) throws CustomException {
+    public CommentDto UpdateComment(CommentDto commentDto, String username) throws CustomException {
+        Users users = userRepository.findByEmail(username)
+                .orElseThrow(()-> new CustomException("user not found"));
         Comments comments = commentsRepository.findById(commentDto.getId()).orElseThrow(() -> new CustomException("Comment not found"));
-        if(!comments.getUser().getId().equals(userId)){
+        if(!comments.getUser().getId().equals(users.getId())){
             throw new CustomException("you are not authorized to delete a comment that is not yours");
         }
         comments.setComments(commentDto.getComments());
@@ -121,6 +129,13 @@ public class CommentServiceImpl implements CommentsService {
         commentResponse.setPageNo(pagedComments.getNumber());
         commentResponse.setPageSize(pagedComments.getSize());
         return commentResponse;
+    }
+
+    @Override
+    public void deleteCommentAdmin(Long id) throws CustomException {
+        Comments comments = commentsRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Comment not found"));
+        commentsRepository.delete(comments);
     }
 }
 

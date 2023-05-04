@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,12 +36,15 @@ public class AdminController {
         return new ResponseEntity<>("User is not logged in yet", HttpStatus.FORBIDDEN);
     }
 //An admin can be able delete a comment
+    @PreAuthorize("hasRole('Admin')")
     @DeleteMapping("/delete-comment/{id}")
-    public ResponseEntity<String> deleteComment(HttpServletRequest req, @PathVariable Long id, CommentDto commentDto) throws CustomException {
-        HttpSession session = req.getSession();
+    public ResponseEntity<String> deleteComment(
+            HttpServletRequest req,
+            @PathVariable Long id,
+            CommentDto commentDto) throws CustomException {
+
         commentDto.setId(id);
-        Long userId = (Long) session.getAttribute("admin_id");
-        commentsService.deleteComment(commentDto.getId(), userId);
+        commentsService.deleteCommentAdmin(commentDto.getId());
         return new ResponseEntity<>("Comment successfully deleted", HttpStatus.OK);
     }
 }

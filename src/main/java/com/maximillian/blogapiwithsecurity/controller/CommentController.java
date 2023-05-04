@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,31 +33,40 @@ public class CommentController {
 
     //A create comment endpoint that take in the post id as a pathvariable
     @PostMapping("/create-comment/{id}")
-    public ResponseEntity<String> createComment(HttpServletRequest req,@PathVariable Long id, @RequestBody CommentDto commentDto){
-        HttpSession session = req.getSession();
-        Long userId = (Long) session.getAttribute("user_id");
-        CommentDto commentDto1 = commentsService.createComment(commentDto, userId, id);
+    public ResponseEntity<String> createComment(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody CommentDto commentDto){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        CommentDto commentDto1 = commentsService.createComment(commentDto, userDetails.getUsername(), id);
         return new ResponseEntity<>(commentDto1.getComments(), HttpStatus.CREATED);
     }
 
     //A delete comment endpoint that takes in the post Id as a pathvariable
     @DeleteMapping("/delete-comment/{id}")
-    public ResponseEntity<String> deleteComment(HttpServletRequest req, @PathVariable Long id, CommentDto commentDto) throws CustomException {
-        HttpSession session = req.getSession();
+    public ResponseEntity<String> deleteComment(
+            Authentication authentication,
+            @PathVariable Long id,
+            CommentDto commentDto) throws CustomException {
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         commentDto.setId(id);
-        Long userId = (Long) session.getAttribute("user_id");
-        commentsService.deleteComment(commentDto.getId(), userId);
+
+        commentsService.deleteComment(commentDto.getId(), userDetails.getUsername());
         return new ResponseEntity<>("Comment successfully deleted", HttpStatus.OK);
     }
 
 
   //A put mapping that updates the comment if found.
     @PutMapping("/update/{id}")
-    public ResponseEntity<String> updateComment(HttpServletRequest req, @PathVariable Long id,@RequestBody CommentDto commentDto) throws CustomException {
-        HttpSession session = req.getSession();
+    public ResponseEntity<String> updateComment(
+          Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody CommentDto commentDto) throws CustomException {
+
         commentDto.setId(id);
-        Long userId = (Long) session.getAttribute("user_id");
-       CommentDto comments = commentsService.UpdateComment(commentDto, userId);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+       CommentDto comments = commentsService.UpdateComment(commentDto, userDetails.getUsername());
         return  new ResponseEntity<>(comments.getComments(), HttpStatus.OK);
     }
 

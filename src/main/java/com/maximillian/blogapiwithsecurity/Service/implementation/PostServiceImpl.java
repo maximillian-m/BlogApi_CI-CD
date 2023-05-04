@@ -12,6 +12,8 @@ import com.maximillian.blogapiwithsecurity.Service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,17 +39,15 @@ public class PostServiceImpl implements PostService {
 
     //Creation of post
     @Override
-    public PostsDto createPost(PostsDto postsDto, Long id) throws CustomException {
+    public PostsDto createPost(PostsDto postsDto, String request) throws CustomException {
         Posts posts = mapDtoToPost(postsDto);
-        Users user = userRepository.findById(id).orElseThrow(() -> (new CustomException("User not found")));
-        if(user.getRoles().equals(Roles.ADMIN)){
+        Users user = userRepository.findByEmail(request)
+                .orElseThrow(() -> new CustomException("User not found"));
             posts.setUser(user);
             posts.setCreatedAt(LocalDateTime.now());
             posts.setUpdatedAt(LocalDateTime.now());
             postRepository.save(posts);
             return mapPostToDto(posts);
-        }
-        throw new CustomException("User is not authorized to perform this action");
     }
 
     //Display of all post
@@ -63,14 +63,14 @@ public class PostServiceImpl implements PostService {
 
     //Admin deleting a post
     @Override
-    public void deletePost(PostsDto postDto, Long adminId) throws CustomException {
-        Users user = userRepository.findById(adminId).orElseThrow(() -> (new CustomException("User not found")));
+    public void deletePost(PostsDto postDto) throws CustomException {
+
         Posts post = new Posts();
         post.setId(postDto.getId());
-        if(user.getRoles().equals(Roles.ADMIN)){
-           postRepository.deleteById(post.getId());
-        }else{
-            throw new CustomException("User is not an admin");
+        try {
+            postRepository.deleteById(post.getId());
+        }catch(Exception e){
+            throw new CustomException("No such post exist");
         }
     }
 
@@ -78,21 +78,14 @@ public class PostServiceImpl implements PostService {
     // Method to update or edit a given post for an admin
     @Override
     @Transactional
-    public void editPost(PostsDto postsDto, Long adminId) throws CustomException {
-        Users user = userRepository.findById(adminId).orElseThrow(() -> (new CustomException("User not found")));
-        log.info("User is admin? ------> :"+ user.getRoles());
+    public void editPost(PostsDto postsDto) throws CustomException {
         Posts post = new Posts();
         post.setId(postsDto.getId());
-        log.info("giving me the post Id of what I asked for: ------>"+ post.getId());
-        Posts post1 = postRepository.findById(post.getId()).get();
+        Posts post1 = postRepository.findById(post.getId())
+                .orElseThrow(()-> new CustomException("Post doesn't exist"));
         post1.setContent(postsDto.getContent());
         post1.setTitle(postsDto.getTitle());
         post1.setUpdatedAt(LocalDateTime.now());
-        if(user.getRoles().equals(Roles.ADMIN)){
-            postRepository.save(post1);
-        }else{
-            throw new CustomException("User is not an admin");
-        }
     }
 
 
