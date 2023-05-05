@@ -31,41 +31,13 @@ public class PostController {
         this.userService = userService;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/createPost")
-    public ResponseEntity<String> CreatePost(
-            @Valid @RequestBody PostsDto postsDto,
-            Authentication authentication
-            ) throws CustomException {
-       UserDetails userDetails1 = (UserDetails) authentication.getPrincipal();
-        PostsDto posts = postService.createPost(postsDto, userDetails1.getUsername());
-        return new ResponseEntity<>(posts.getTitle(), HttpStatus.CREATED);
-    }
+
     @GetMapping("/getAllPost")
     public ResponseEntity<List<PostsDto>> getAllPost(){
         List<PostsDto> returnedPosts = postService.displayAllPost();
         return new ResponseEntity<>(returnedPosts, HttpStatus.OK);
 }
-@PreAuthorize("hasRole('ADMIN')")
-@DeleteMapping("/deletePost/{id}")
-    public ResponseEntity<String> deletePost(
-            @PathVariable Long id
-       ) throws CustomException {
-        PostsDto postsDto = new PostsDto();
-        postsDto.setId(id);
-        postService.deletePost(postsDto);
-        return new ResponseEntity<>("Delete Successful", HttpStatus.ACCEPTED);
 
-    }
-    @PreAuthorize("hasROle('ADMIN')")
-    @PutMapping("/edit-post/{id}")
-    public ResponseEntity<String> editPost(
-            @PathVariable Long id,
-            @RequestBody PostsDto postsDto) throws CustomException {
-        postsDto.setId(id);
-        postService.editPost(postsDto);
-        return new ResponseEntity<>("update successful", HttpStatus.ACCEPTED);
-    }
 
     @GetMapping("/search")
     public ResponseEntity<List<PostsDto>> searchForPosts(@RequestBody PostsDto postsDto){

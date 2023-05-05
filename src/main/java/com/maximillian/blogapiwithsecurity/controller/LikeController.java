@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,14 +24,16 @@ public class LikeController {
     }
     // The entity that handles the like and the unlike situation of the user
     @PostMapping("/Like/{id}/{likeId}")
-    public ResponseEntity<String> likeAPost(@PathVariable Long id, @PathVariable Long likeId,  HttpServletRequest request) throws CustomException {
-        HttpSession session = request.getSession();
-        Long user_id = (Long) session.getAttribute("user_id");
+    public ResponseEntity<String> likeAPost(
+            @PathVariable Long id,
+            @PathVariable Long likeId,
+            Authentication authentication) throws CustomException {
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         LikeDto likeDto = new LikeDto();
         likeDto.setPost_id(id);
         likeDto.setLikeId(likeId);
-        likeDto.setUser_id(user_id);
-        likeService.likeOrUnlikePost(likeDto);
+        likeService.likeOrUnlikePost(likeDto, userDetails.getUsername());
         return new ResponseEntity<>("Liked post with id: " + id, HttpStatus.OK);
     }
 

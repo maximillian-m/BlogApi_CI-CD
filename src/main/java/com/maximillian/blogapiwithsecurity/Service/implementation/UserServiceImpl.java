@@ -1,6 +1,6 @@
 package com.maximillian.blogapiwithsecurity.Service.implementation;
 
-import com.maximillian.blogapiwithsecurity.Config.SecurityConfig.JwtService;
+import com.maximillian.blogapiwithsecurity.utils.JwtService;
 import com.maximillian.blogapiwithsecurity.Dto.AuthResponse;
 import com.maximillian.blogapiwithsecurity.Dto.UsersDto;
 import com.maximillian.blogapiwithsecurity.Enums.*;
@@ -13,14 +13,12 @@ import com.maximillian.blogapiwithsecurity.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.maximillian.blogapiwithsecurity.Mapper.UserMapper.dtoToEntity;
 import static com.maximillian.blogapiwithsecurity.Mapper.UserMapper.mappedToDto;

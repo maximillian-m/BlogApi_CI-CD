@@ -1,4 +1,4 @@
-package com.maximillian.blogapiwithsecurity.Config.SecurityConfig;
+package com.maximillian.blogapiwithsecurity.utils;
 
 import com.maximillian.blogapiwithsecurity.Models.Users;
 import io.jsonwebtoken.Claims;

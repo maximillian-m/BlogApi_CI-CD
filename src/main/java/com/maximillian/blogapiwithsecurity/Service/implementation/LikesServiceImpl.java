@@ -27,8 +27,9 @@ public class LikesServiceImpl implements LikeService {
     }
 // this is a helper method to use to help the like or unlike method
     @Override
-    public void checkLike(LikeDto likeDto) throws CustomException {
-        Users user = userRepository.findById(likeDto.getUser_id()).orElseThrow(() -> new CustomException("Login to be able to like post"));
+    public void checkLike(LikeDto likeDto, String username) throws CustomException {
+
+        Users user = userRepository.findByEmail(username).orElseThrow(() -> new CustomException("Login to be able to like post"));
         Posts post = postRepository.findById(likeDto.getPost_id()).orElseThrow(() -> new CustomException("post does not exist"));
         Likes likes = new Likes();
         likes.setUpdatedAt(LocalDateTime.now());
@@ -40,7 +41,7 @@ public class LikesServiceImpl implements LikeService {
 
     //This is the method that checks if a post has been liked already by a user. if it has then unlike otherwise create a like dor that post
     @Override
-    public void likeOrUnlikePost(LikeDto likeDto) throws CustomException {
+    public void likeOrUnlikePost(LikeDto likeDto, String username) throws CustomException {
        Optional<Likes> likes = likesRepository.findById(likeDto.getLikeId());
         if(likes.isPresent()){
             Likes likes1 = likes.get();
@@ -48,7 +49,7 @@ public class LikesServiceImpl implements LikeService {
             likes1.setUpdatedAt(LocalDateTime.now());
             likesRepository.save(likes1);
         }else if(!likes.isPresent()){
-            checkLike(likeDto);
+            checkLike(likeDto, username);
         }else{
             throw new CustomException("You cannot dislike again");
         }

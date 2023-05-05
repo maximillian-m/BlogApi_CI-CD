@@ -1,4 +1,4 @@
-package com.maximillian.blogapiwithsecurity.Config.SecurityConfig;
+package com.maximillian.blogapiwithsecurity.utils;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
