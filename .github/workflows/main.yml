@@ -11,10 +11,10 @@
         runs-on: ubuntu-latest
 
         steps:
-          - name: checkout code
+          - name: Checkout code
             uses: actions/checkout@v3
 
-          - name: setup JDK 17
+          - name: Setup JDK 17
             uses: action/setup-java@v3
             with:
 
