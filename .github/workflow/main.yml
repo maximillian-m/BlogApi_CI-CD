@@ -1,0 +1,32 @@
+    name: Build and deploy Spring Security app
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      build-deploy:
+        name: Build and Deploy SpringBoot Application
+        runs-on: ubuntu-latest
+
+        steps:
+          - name: checkout code
+            uses: actions/checkout@v3
+
+          - name: setup JDK 17
+            uses: action/setup-java@v3
+            with:
+
+              distribution: 'corretto'
+              java-version: 17
+
+          - name: unit Tests
+            run: mvn -B test --file pom.xml
+
+          - name: Build application
+            run:
+              mvn clean
+              mvn -B package --file pom.xml
+
+

@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6500/securityBlogDB
-    username:
-    password:
+    url: jdbc:postgresql://secureDb:5432/securityBlogDB
+    username: postgres
+    password: password
     driverClassName: org.postgresql.Driver
   jpa:
     hibernate:
-      ddlAuto: create-drop
+      ddlAuto: update
     showSql: true
     properties:
       hibernate:
