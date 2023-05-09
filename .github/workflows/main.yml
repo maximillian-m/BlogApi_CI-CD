@@ -7,6 +7,20 @@
         name: Build and Deploy SpringBoot Application
         runs-on: ubuntu-latest
 
+        services:
+          postgres:
+            image: postgres:alpine
+            env:
+              POSTGRES_USERNAME: postgres
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DB: securityBlogDB
+
+            options: >-
+              --health-cmd pg_isready
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+
         steps:
           - name: Checkout code
             uses: actions/checkout@v3
