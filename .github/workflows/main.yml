@@ -1,65 +1,55 @@
-    name: Build and deploy Spring Security app
+name: Build and deploy Spring Security app
 
-    on: [push]
+on:
+  push:
+    branches:
+      - main
 
-    jobs:
-      build-deploy:
-        name: Build and Deploy SpringBoot Application
-        runs-on: ubuntu-latest
+jobs:
+  build-deploy:
+    name: Build and Deploy SpringBoot Application
+    runs-on: ubuntu-latest
 
-        services:
-          postgres:
-            image: postgres:alpine
-            env:
-              POSTGRES_USERNAME: postgres
-              POSTGRES_PASSWORD: password
-              POSTGRES_DB: securityBlogDB
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: securityBlogDB
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U postgres"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
 
-            options:
-              --health-cmd pg_isready
-              --health-interval 10s
-              --health-timeout 5s
-              --health-retries 5
-           
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        steps:
+      - name: Setup JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
 
-          - name: Checkout code
-            uses: actions/checkout@v3
+      - name: unit Tests
+        run: mvn -B test --file pom.xml
 
-          - name: Setup JDK 17
-            uses: actions/setup-java@v3
-            with:
-              distribution: 'corretto'
-              java-version: 17
+      - name: Build application
+        run: |
+          mvn clean
+          mvn -B package --file pom.xml
 
-          - name: unit Tests
-            run: mvn -B test --file pom.xml
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-          - name: Build application
-            run: |
-              mvn clean
-              mvn -B package --file pom.xml
-
-          - name: Build Docker image for app
-            uses: docker/build-push-action@v2
-            with:
-              context: .
-              dockerfile: Dockerfile
-              push: false
-              tags: ${{ secrets.DOCKER_HUB_USERNAME }}/spring_security_using_jwt_token:latest
-
-          - name: Login in to docker Hub
-            uses: docker/login-action@v2
-            with:
-              username: ${{ secrets.DOCKER_HUB_USERNAME }}
-              password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-
-          - name: push to Docker
-            uses: docker/build-push-action@v4
-            with:
-              context: .
-              dockerfile: Dockerfile
-              push: true
-              tags: {{ secrets.DOCKER_HUB_USERNAME }}/spring_security_using_jwt_token:latest
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/spring_security_using_jwt_token:latest
