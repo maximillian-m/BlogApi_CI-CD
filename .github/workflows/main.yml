@@ -51,7 +51,5 @@
           - name: push to Docker
             uses: docker/build-push-action@v4
             with:
-              context: .
-              dockerfile: Dockerfile
               push: true
               tags: {{ secrets.DOCKER_HUB_USERNAME }}/spring_security_using_jwt_token:latest
